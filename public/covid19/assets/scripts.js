@@ -19,8 +19,8 @@ const generarContenido = async (token) => {
     const actives = getActivesFromTotal(total);
     toggleFormAndGraficos("formulario-wrapper", "data-wrapper")
     console.log(actives);
-    drawChart('grafico1', actives, "paices con mas de 10.000 casos activos")
-    fillTable('table-data',totals)
+    drawChart('grafico1', actives, "paises con mas de 10.000 casos activos")
+    fillTable('table-data',total)
 
     console.log();
 
