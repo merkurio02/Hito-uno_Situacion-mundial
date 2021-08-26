@@ -1,14 +1,20 @@
 //evento en el formulario
 $('#formulario-ingreso').submit(async (e) => {
     e.preventDefault();
-
-
+    $('#modal-login small').text(' ');
     const email = document.getElementById("input-email").value;
     const pass = document.getElementById("input-pass").value;
     const token = await getlTokken(email, pass);
-    localStorage.setItem("token",token)
+    if (token) {
+        localStorage.setItem("token", token)
+        $('#modal-login small').text('success');
+        $('#modal-login').modal('hide');
+        $('#nav-login').fadeToggle(1000,
+            $('#nav-chile').fadeToggle())
+    } else {
+        $('#modal-login small').text('Error');
+    }
 
-    generarContenido(token);
 
 
 });
@@ -17,11 +23,11 @@ $('#formulario-ingreso').submit(async (e) => {
 const generarContenido = async (token) => {
     const total = await getTotal(token);
     const actives = getActivesFromTotal(total);
-    toggleFormAndGraficos("formulario-wrapper", "data-wrapper")
     console.log(actives);
     drawChart('grafico1', actives, "paises con mas de 10.000 casos activos")
-    fillTable('table-data',total)
+    fillTable('table-data', total)
 
+    $('#home-wrapper').fadeToggle(2000);
     console.log();
 
 }
@@ -79,7 +85,6 @@ const getActivesFromTotal = (total) => {
     }
 }
 
-
 const getDeathsFromTotal = (total) => {
 
 
@@ -100,7 +105,7 @@ const getDeathsFromTotal = (total) => {
     }
 }
 
-const getCountrieDetail=async(token,countrie)=>{
+const getCountrieDetail = async (token, countrie) => {
     try {
         const response = await fetch(`http://localhost:3000/api/countries/${countrie}`, {
             method: 'GET',
@@ -115,7 +120,7 @@ const getCountrieDetail=async(token,countrie)=>{
     }
 }
 
-const getLocalToken=()=>{
+const getLocalToken = () => {
     return localStorage.getItem("token")
 }
 
@@ -137,62 +142,41 @@ const drawChart = (chart, data, title) => {
     const mychart = new Chart($(`#${chart}`), config)
 }
 
-const fillTable = (table,data)=>{
-    let rows="";
+const fillTable = (table, data) => {
+    let rows = "";
     console.log(data);
-    data.forEach((x)=>{
-        rows+=`<tr>
+    data.forEach((x) => {
+        rows += `<tr>
         <th scope="row">${x.location}</th>
         <td>${x.confirmed}</td>
         <td>${x.deaths}</td>
         <td>${x.recovered}</td>
         <td>${x.active}</td>
         <td>
-        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-pais" onclick="fillModal('${x.location}','modal-body')" title="Lo mismo pero un modal">
+        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-pais" onclick="modalCountrieDetails('${x.location}','modal-pais')" title="Lo mismo pero un modal">
            Detalles
         </button>
         
     </tr>`
     })
 
-    
+
     $(`#${table} tbody`).append(rows)
 }
 
-const fillModal=async(location,modal)=>{
-
-    $(`#${modal}`).text("")
-    const token =getLocalToken();
-    const data = await getCountrieDetail(token,location)
-    $(`#${modal}`).append(`
-    <table class="table">
-        <tbody>
-            <tr>
-                <th scope="row">Pais</th>
-                <td>${data.location}</td>
-            </tr>
-            <tr>
-                <th scope="row">Confirmados</th>
-                <td>${data.confirmed}</td>
-            </tr>
-            <tr>
-                <th scope="row">Muertos</th>
-                <td>${data.deaths}</td>
-            </tr>
-            <tr>
-                <th scope="row">Recuperados</th>
-                <td>${data.recovered}</td>
-            </tr>
-            <tr>
-                <th scope="row">Activos</th>
-                <td>${data.active}</td>
-            </tr>
-        </tbody>
-    </table>
-    `)
+//funciones para llenar y iniciar modals
+const modalCountrieDetails = async (location, modal) => {
 
 
-console.log(data);
+    $(`#${modal} .modal-body table`)
+    const token = getLocalToken();
+    const data = await getCountrieDetail(token, location)
+    $(`#${modal} #pais`).text(data.location)
+    $(`#${modal} #confirmados`).text(data.confirmed)
+    $(`#${modal} #muertos`).text(data.deaths)
+    $(`#${modal} #recuperados`).text(data.recovered)
+    $(`#${modal} #activos`).text(data.active)
+
 }
 
 //Funciones esteticas
@@ -205,8 +189,13 @@ const toggleFormAndGraficos = (form, graficos) => {
 const init = () => {
     const token = localStorage.getItem("token")
     if (token) {
-        generarContenido(token)
+        $('#nav-chile').fadeToggle()
+    }else{
+        $('#nav-login').fadeToggle()
     }
+
+        generarContenido(token)
+    
 }
 init();
 
