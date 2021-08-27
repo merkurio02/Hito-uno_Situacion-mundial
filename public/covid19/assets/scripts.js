@@ -9,8 +9,9 @@ $('#formulario-ingreso').submit(async (e) => {
         localStorage.setItem("token", token)
         $('#modal-login small').text('success');
         $('#modal-login').modal('hide');
-        $('#nav-login').fadeToggle(1000,
-            $('#nav-chile').fadeToggle())
+        $('#nav-login').fadeToggle(() => $('#nav-chile').fadeToggle())
+        $('#log-out').fadeToggle();
+
     } else {
         $('#modal-login small').text('Error');
     }
@@ -19,18 +20,6 @@ $('#formulario-ingreso').submit(async (e) => {
 
 });
 
-//funcion que genera todo el contenido
-const generarContenido = async (token) => {
-    const total = await getTotal(token);
-    const actives = getActivesFromTotal(total);
-    console.log(actives);
-    drawChart('grafico1', actives, "paises con mas de 10.000 casos activos")
-    fillTable('table-data', total)
-
-    $('#home-wrapper').fadeToggle(2000);
-    console.log();
-
-}
 
 
 
@@ -50,12 +39,11 @@ const getlTokken = async (email, pass) => {
     }
 }
 
-const getTotal = async (token) => {
+const getTotal = async () => {
     try {
         const response = await fetch("http://localhost:3000/api/total", {
             method: 'GET',
             headers: {
-                Authorization: `Bearer ${token}`
             }
         })
         const { data } = await response.json();
@@ -66,7 +54,52 @@ const getTotal = async (token) => {
 
 }
 
+getConfirmedChile = async (token) => {
+    try {
+        const response = await fetch("http://localhost:3000/api/confirmed", {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        const { data } = await response.json();
+        return data;
+    } catch (e) {
+        console.log(`Error: ${e}`);
+    }
+}
+getDeathsChile = async (token) => {
+    try {
+        const response = await fetch("http://localhost:3000/api/deaths", {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        const { data } = await response.json();
+        return data;
+    } catch (e) {
+        console.log(`Error: ${e}`);
+    }
+}
+getRecoveredChile = async (token) => {
+    try {
+        const response = await fetch("http://localhost:3000/api/recovered", {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        const { data } = await response.json();
+        return data;
+    } catch (e) {
+        console.log(`Error: ${e}`);
+    }
+}
+
+//regresa un arreglo de 2 espacios, el primero tiene un arreglo con los paises, el segundo un arreglo con los casos activos, ordenados correlacionalmente
 const getActivesFromTotal = (total) => {
+
     const countries = [];
     const actives = [];
 
@@ -78,32 +111,49 @@ const getActivesFromTotal = (total) => {
             countries.push(elementMap.location)
             actives.push(elementMap.active)
         })
-
     return {
         "countries": countries,
         "active": actives
     }
 }
+// confirmed deaths recovered
+const getConfirmedDeathsRecovered = async (token) => {
 
-const getDeathsFromTotal = (total) => {
+    
+    
 
-
-    const countries = [];
-    const deaths = [];
-    total.filter((elementFilter) => elementFilter.deaths > 50000)
-        .sort((a, b) => {
-            return b.deaths - a.deaths
-        })
-        .map((elementMap) => {
-            countries.push(elementMap.location)
-            deaths.push(elementMap.deaths)
-        })
+    
+    const labels = (await getConfirmedChile(token)).map((x) => x.date);
+    
+    const data = [(await getConfirmedChile(token)).map((x) => x.total),
+        (await getDeathsChile(token)).map((x) => x.total),
+        (await getRecoveredChile(token)).map((x) => x.total)]
 
     return {
-        "countries": countries,
-        "deaths": deaths
+        "labels": labels,
+        "data": data
     }
+
 }
+// const getDeathsFromTotal = (total) => {
+
+
+//     const countries = [];
+//     const deaths = [];
+//     total.filter((elementFilter) => elementFilter.deaths > 50000)
+//         .sort((a, b) => {
+//             return b.deaths - a.deaths
+//         })
+//         .map((elementMap) => {
+//             countries.push(elementMap.location)
+//             deaths.push(elementMap.deaths)
+//         })
+
+//     return {
+//         "countries": countries,
+//         "deaths": deaths
+//     }
+// }
 
 const getCountrieDetail = async (token, countrie) => {
     try {
@@ -120,22 +170,29 @@ const getCountrieDetail = async (token, countrie) => {
     }
 }
 
-const getLocalToken = () => {
-    return localStorage.getItem("token")
-}
+
 
 //funciones que rellenan cosas del DOM
-const drawChart = (chart, data, title) => {
+const newChart = (chart, data, titles, type = 'bar') => {
+
+    if (data[0] == undefined)
+        data[0] = [""];
+    if (data[1] == undefined)
+        data[1] = [0];
+
+    let datasets = [];
+    data[1].forEach((x) => {
+        datasets.push({
+            label: titles.pop(),
+            data: x,
+        })
+    })
+
     const config = {
-        type: 'bar',
+        type: type,
         data: {
             labels: data[0],
-            datasets: [{
-                label: title,
-                backgroundColor: 'rgb(255, 99, 132)',
-                borderColor: 'rgb(255, 99, 132)',
-                data: data[1],
-            }],
+            datasets: datasets,
         },
         options: {}
     }
@@ -144,7 +201,6 @@ const drawChart = (chart, data, title) => {
 
 const fillTable = (table, data) => {
     let rows = "";
-    console.log(data);
     data.forEach((x) => {
         rows += `<tr>
         <th scope="row">${x.location}</th>
@@ -164,7 +220,7 @@ const fillTable = (table, data) => {
     $(`#${table} tbody`).append(rows)
 }
 
-//funciones para llenar y iniciar modals
+//funciones para llenar modals
 const modalCountrieDetails = async (location, modal) => {
 
 
@@ -179,23 +235,57 @@ const modalCountrieDetails = async (location, modal) => {
 
 }
 
-//Funciones esteticas
-const toggleFormAndGraficos = (form, graficos) => {
-    $(`#${form}`).toggle();
-    $(`#${graficos}`).toggle();
+
+//funcion que genera contenido por pagina
+const generarContenidoHome = async (token) => {
+    const total = await getTotal();
+    const actives = getActivesFromTotal(total);
+    newChart('grafico-muertes-mundo', actives, ["paises con mas de 10.000 casos activos"])
+    fillTable('table-data', total)
+
+    $('#home-wrapper').fadeToggle(2000);
+
 }
 
-//funcion inicial
-const init = () => {
+const generarContenidoChile = async (token) => {
+    const total = await getTotal();
+    const actives = getActivesFromTotal(total);
+    newChart('grafico-muertes-mundo', actives, ["paises con mas de 10.000 casos activos"])
+    fillTable('table-data', total)
+
+    $('#home-wrapper').fadeToggle(2000);
+
+}
+// funcion para cerrar sesion
+
+const logout = () => {
+    localStorage.removeItem("token");
+    $('#nav-chile').fadeToggle(() => $('#nav-login').fadeToggle())
+    $('#log-out').fadeToggle();
+}
+
+// funcion para obtener el token local
+const getLocalToken = () => {
+    return localStorage.getItem("token")
+}
+
+// funcion inicial
+const init = async () => {
     const token = localStorage.getItem("token")
+    let x;
     if (token) {
         $('#nav-chile').fadeToggle()
-    }else{
+        $('#log-out').fadeToggle()
+         getConfirmedDeathsRecovered(token).then(x=>console.log(x))
+    } else {
         $('#nav-login').fadeToggle()
     }
 
-        generarContenido(token)
-    
+    generarContenidoHome(token)
+
 }
 init();
+
+
+
 
