@@ -113,14 +113,16 @@ const getCountrieDetail = async (token, countrie) => {
 }
 
 /*
-New Chart dibuja un grafico en el canvas especificado: 
-Recive : el ID del canvas en el DOM
-titulo/s de los conjuntos de datos a graficar,
-un objeto con los datos a graficar: 
-{
-    labels:[labels de los puntos del eje X],
-    data: [[datos],[datos 2 opcional],[ datos n opcional]]
-}
+New Chart: dibuja un grafico en el canvas especificado. 
+Recive :
+     el ID del canvas en el DOM como
+    titulo/s de los conjuntos de datos a graficar en un arreglo,
+    un objeto con los datos a graficar: 
+    {
+        labels:[labels de los puntos del eje X],
+        data: [[datos],[datos2... [datosN]]
+    }
+    typo: tipo de grafico en formato texto, por defecto es de tipo barra (bar)
 */
 const newChart = (canvas, data, titles, type = 'bar') => {
 
@@ -228,6 +230,7 @@ const fillTable = (table, data) => {
     $(`#${table} tbody`).append(rows)
 }
 
+//modifica el contenido del modal detalle por pais
 const setModalCountrieDetails = async (location, modal) => {
 
 
@@ -243,7 +246,7 @@ const setModalCountrieDetails = async (location, modal) => {
 
 }
 
-//despliege de contenido en HOME
+//genera y despliega contenido en HOME
 const generarContenidoHome = async () => {
     $('#loading-ico').slideDown();
     const total = await getTotal();
@@ -261,7 +264,7 @@ const generarContenidoHome = async () => {
 
 }
 
-//despliege de contenido de CHILE
+//genera y despliega contenido de CHILE
 const generarContenidoChile = async () => {
     $('#loading-ico').slideDown();
 
@@ -300,7 +303,6 @@ Links del lavbar
 ***** */
 
 //home
-
 const callHome=()=>{
     $('#chile-wrapper').fadeOut();
     generarContenidoHome();
@@ -316,7 +318,6 @@ Funciones inicial
 ***** */
 const init = async () => {
     const token = localStorage.getItem("token")
-    let x;
     if (token) {
         $('#nav-chile').fadeIn()
         $('#log-out').fadeIn()
@@ -328,6 +329,7 @@ const init = async () => {
     generarContenidoHome()
 
 }
+
 init();
 
 
