@@ -19,6 +19,7 @@
 
 
 
+    <link rel="stylesheet" href="assets/css/ico-style.css">
 
     <title>COVID 19</title>
 </head>
@@ -35,13 +36,13 @@
                     <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
                         <ul class="navbar-nav">
                             <li class="nav-item">
-                                <a class="nav-link btn">Home</a>
+                                <a class="nav-link btn" onclick="callHome()">Home</a>
                             </li>
                             <li class="nav-item" id="nav-login" style="display: none;">
                                 <a class="nav-link btn" data-bs-toggle="modal" data-bs-target="#modal-login">Login</a>
                             </li>
                             <li class="nav-item" id="nav-chile" style="display: none;">
-                                <a class="nav-link btn">Situacion Chile</a>
+                                <a class="nav-link btn" onclick="callChile()">Situacion Chile</a>
                             </li>
                         </ul>
                         <a class="nav-link btn" id="log-out" onclick="logout()" style="display: none;">Salir</a>
@@ -51,36 +52,45 @@
         </header>
         <div class="row justify-content-center">
 
-            <div class="col-12 col-lg-6 col-md-8 col-sm-10 pt-5">
+            <div class="col-12  col-sm-10 pt-5">
                 <h1>COVID 19</h1>
+
+                <div id="loading-ico" class="text-center" style="display: none;">
+                    <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+                </div>
                 <div id="home-wrapper" style="display: none;">
-                    <div >
+                    <div id="canvas-home">
                         <canvas id="grafico-muertes-mundo"></canvas>
                     </div>
 
-                    <table id="table-data" class="table">
-                        <thead>
-                            <tr>
-                                <th>Pais</th>
-                                <th>Casos confirmados</th>
-                                <th>muertes</th>
-                                <th>recuperados</th>
-                                <th>Casos activos</th>
-                                <th> </th>
-
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-
-                    </table>
+                    <div id="table-wrapper" style="display: none;">
+                        <table id="table-data" class="table" >
+                            <thead>
+                                <tr>
+                                    <th>Pais</th>
+                                    <th>Casos confirmados</th>
+                                    <th>muertes</th>
+                                    <th>recuperados</th>
+                                    <th>Casos activos</th>
+                                    <th> </th>
+    
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+    
+                        </table>
+                    </div>
+                    
 
 
                 </div>
 
 
                 <div id="chile-wrapper" style="display:none">
-
+                    <div id="canvas-chile" >
+                        <canvas id="grafico-chile"></canvas>
+                    </div>
                 </div>
 
                 <div id="modals">
@@ -128,18 +138,19 @@
                         </div>
                     </div>
 
+                    <!-- Modal login -->
                     <div class="modal fade" id="modal-login" tabindex="-1" aria-labelledby="modal-login"
                         aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="exampleModalLabel">Detalles</h5>
+                                    <h5 class="modal-title" id="exampleModalLabel">Ingreso</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                         aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body" id="modal-body">
                                     <form id="formulario-ingreso" class="border rounded p-3">
-                                        <small class="mb-1"></small>
+                                        <small class="mb-1">Bienvenido</small>
                                         <br>
                                         <div class="mb-3">
                                             <label>Email address</label>
